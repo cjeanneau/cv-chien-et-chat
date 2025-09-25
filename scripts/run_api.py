@@ -20,5 +20,5 @@ if __name__ == "__main__":
         "src.api.main:app",
         host=API_CONFIG["host"],
         port=API_CONFIG["port"],
-        reload=False  # En production Docker
+        reload=True  # En production Docker
     )
