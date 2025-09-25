@@ -1,6 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 import sys
 from pathlib import Path
 import time
@@ -77,7 +78,21 @@ async def predict_api(
         end_time = time.perf_counter()
         inference_time_ms = (end_time - start_time) * 1000
         
+        
+        # Sauvegarder l'image uploadée avec un nom unique
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename_uploads = f"{result['prediction']}_{timestamp}.jpg"
+        save_image_with_max_size(image_data, filename_uploads)
+
+        # Enregistrer dans la base de données
+        prediction = save_prediction_in_db(
+            probabilite_chat=result['probabilities']['cat'],
+            image_path=filename_uploads,
+            inference_time_ms=inference_time_ms
+        )
+
         response_data = {
+            "prediction_id": prediction.id_predict,
             "filename": file.filename,
             "prediction": result["prediction"],
             "inference-tile": f"{inference_time_ms:.2f} ms",
@@ -87,18 +102,6 @@ async def predict_api(
                 "dog": f"{result['probabilities']['dog']:.2%}"
             }
         }
-        
-        # Sauvegarder l'image uploadée avec un nom unique
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename_uploads = f"{result['prediction']}_{timestamp}.jpg"
-        save_image_with_max_size(image_data, filename_uploads)
-
-        # Enregistrer dans la base de données
-        save_prediction_in_db(
-            probabilite_chat=result['probabilities']['cat'],
-            image_path=filename_uploads,
-            inference_time_ms=inference_time_ms
-        )
        
         return response_data
         
@@ -146,3 +149,23 @@ async def health_check():
         "status": "healthy",
         "model_loaded": predictor.is_loaded()
     }
+
+class FeedbackRequest(BaseModel):
+    feedback: str
+    prediction_id: int
+
+
+
+@router.post("/feedback")
+async def save_feedback(feedback_data: FeedbackRequest):
+    """
+    Reçoit un feedback depuis le frontend et le log.
+    """
+    print(f"Feedback reçu : {feedback_data.feedback}, pour la prédiction : {feedback_data.prediction_id}")
+    # Ici, ajoute la logique pour enregistrer en base de données si nécessaire
+    return {"status": "success", "message": f"Feedback enregistré avec succès."}
+
+
+
+
+
