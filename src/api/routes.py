@@ -166,6 +166,7 @@ async def save_feedback(feedback_data: FeedbackRequest):
     feedback = save_feedback_in_db(
         prediction_id=feedback_data.prediction_id,
         feedback=feedback_data.feedback
+        
     )
 
     return {"status": "success", "message": f"Feedback enregistré avec succès."}
