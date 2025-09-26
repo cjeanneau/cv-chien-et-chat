@@ -10,6 +10,7 @@ ROOT_DIR = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from config.settings import ROOT_DIR, PROCESSED_DATA_DIR
+from src.database.db_crud import DatabaseOperations
 
 # Fichier CSV pour stocker les métriques
 MONITORING_FILE = PROCESSED_DATA_DIR / "monitoring_inference.csv"
@@ -86,3 +87,47 @@ def time_inference(func):
             raise e
     
     return wrapper
+
+def save_prediction_in_db(probabilite_chat: float, image_path: str, inference_time_ms: float):
+    """
+    Enregistre une prédiction dans la base de données via DatabaseOperations.
+
+    Args:
+        probabilite_chat (float): Probabilité que ce soit un chat (entre 0 et 1)
+        image_path (str): Chemin ou nom du fichier image
+        inference_time_ms (float): Temps d'inférence en millisecondes
+
+    Returns:
+        Prediction: L'objet Prediction créé
+    """
+    db = DatabaseOperations()
+    print("Enregistrement de la prédiction en base de données...")
+        
+    prediction = db.create_prediction(
+        probabilite_chat=probabilite_chat,
+        image_path=image_path,
+        inference_time_ms=inference_time_ms
+    )
+    return prediction
+
+def save_feedback_in_db(prediction_id: int, feedback: str):
+    """
+    Enregistre un feedback utilisateur dans la base de données via DatabaseOperations.
+
+    Args:
+        prediction_id (int): ID de la prédiction associée
+        feedback (str): Feedback utilisateur (e.g., "correct", "incorrect")
+
+    Returns:
+        Feedback: L'objet Feedback créé
+    """
+    db = DatabaseOperations()
+    print("Enregistrement du feedback en base de données...")
+    # Conversion du feedback en booléen 
+    feedback = 1 if feedback.lower() =="positif" else 0
+    #Enregistrement dans la base
+    feedback_entry = db.create_feedback(
+        prediction_id=prediction_id,
+        feedback=feedback
+    )
+    return feedback_entry

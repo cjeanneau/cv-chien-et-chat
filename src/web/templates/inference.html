@@ -22,7 +22,11 @@
                         <label for="imageFile" class="form-label">Choisir une image</label>
                         <input type="file" class="form-control" id="imageFile" accept="image/*" required>
                         <div class="form-text">Formats supportés: JPG, PNG, JPEG</div>
+                        <div class="text-center"> 
+                            <span class="text-danger fw-bold" > ATTENTION : les images soumises seront sauvegardées!!!</span>
+                        </div>
                     </div>
+                    
                     
                     <div class="mb-3">
                         <label for="apiToken" class="form-label">Token API</label>
@@ -56,6 +60,8 @@
 
 {% block scripts %}
 <script>
+let predictionId;
+
 document.getElementById('imageFile').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
@@ -106,6 +112,7 @@ document.getElementById('predictionForm').addEventListener('submit', async funct
         const data = await response.json();
         
         if (response.ok) {
+            predictionId = data.prediction_id;
             const isDog = data.prediction === 'Dog';
             const emoji = isDog ? '🐶' : '🐱';
             const bgColor = isDog ? 'bg-warning' : 'bg-success';
@@ -126,6 +133,13 @@ document.getElementById('predictionForm').addEventListener('submit', async funct
                         </div>
                     </div>
                 </div>
+                   
+                <div id="feedback-section"> 
+                    <p>Est-ce que la prédiction vous semble correcte?</p>    
+                    <button data-value="positif">👍</button>
+                    <button data-value="negatif">👎</button>
+                </div>
+                
             `;
         } else {
             result.innerHTML = `
@@ -151,5 +165,29 @@ document.getElementById('predictionForm').addEventListener('submit', async funct
     loading.style.display = 'none';
     predictBtn.disabled = false;
 });
+
+document.getElementById('result').addEventListener('click', function(event) {
+    if (event.target.tagName === 'BUTTON' && event.target.parentElement.id === 'feedback-section') {
+        const feedbackValue = event.target.getAttribute('data-value');
+        fetch('/feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                feedback: feedbackValue,
+                prediction_id: predictionId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Merci pour votre feedback !');
+        })
+        .catch(error => {
+            alert('Une erreur est survenue. Veuillez réessayer.');
+        });
+    }
+});
+
 </script>
 {% endblock %}
