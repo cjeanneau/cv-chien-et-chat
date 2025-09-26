@@ -1,5 +1,4 @@
 name: CI
-
 on:
   push:
     branches: [ main ]
@@ -7,28 +6,54 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
+    # Ajout du service PostgreSQL en conteneur Docker
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: 3.11
-    
+
     - name: Install dependencies
       run: |
         pip install -r requirements/base.txt
-        pip install pytest
-    
+        pip install pytest psycopg2-binary  # Ajout de psycopg2 pour PostgreSQL
+
     - name: Setup test environment
       run: |
         mkdir -p data/processed/models
         touch data/processed/models/cats_dogs_model.keras
-    
+
     - name: Start API and test
+      env:
+        # Variable pour la connexion à la base de données de test
+        TEST_DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
       run: |
+        # Lance ton API en arrière-plan
         python scripts/run_api.py &
+        API_PID=$!
+        # Attends que l'API soit prête
         sleep 10
-        python tests/test_api_simple.py
-        python tests/test_api.py
+        # Exécute tes tests (y compris ceux qui utilisent la base de données)
+        #python tests/test_api_simple.py
+        #python tests/test_api.py
+        python tests/mytests.py
+        # Arrête l'API après les tests
+        kill $API_PID
