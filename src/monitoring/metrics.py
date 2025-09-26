@@ -110,3 +110,24 @@ def save_prediction_in_db(probabilite_chat: float, image_path: str, inference_ti
     )
     return prediction
 
+def save_feedback_in_db(prediction_id: int, feedback: str):
+    """
+    Enregistre un feedback utilisateur dans la base de données via DatabaseOperations.
+
+    Args:
+        prediction_id (int): ID de la prédiction associée
+        feedback (str): Feedback utilisateur (e.g., "correct", "incorrect")
+
+    Returns:
+        Feedback: L'objet Feedback créé
+    """
+    db = DatabaseOperations()
+    print("Enregistrement du feedback en base de données...")
+    # Conversion du feedback en booléen 
+    feedback = 1 if feedback.lower() =="positif" else 0
+    #Enregistrement dans la base
+    feedback_entry = db.create_feedback(
+        prediction_id=prediction_id,
+        feedback=feedback
+    )
+    return feedback_entry

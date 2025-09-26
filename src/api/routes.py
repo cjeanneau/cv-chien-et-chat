@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT_DIR))
 
 from .auth import verify_token
 from src.models.predictor import CatDogPredictor
-from src.monitoring.metrics import time_inference, log_inference_time, save_prediction_in_db
+from src.monitoring.metrics import time_inference, log_inference_time, save_prediction_in_db, save_feedback_in_db
 
 # Configuration des templates
 TEMPLATES_DIR = ROOT_DIR / "src" / "web" / "templates"
@@ -162,7 +162,12 @@ async def save_feedback(feedback_data: FeedbackRequest):
     Reçoit un feedback depuis le frontend et le log.
     """
     print(f"Feedback reçu : {feedback_data.feedback}, pour la prédiction : {feedback_data.prediction_id}")
-    # Ici, ajoute la logique pour enregistrer en base de données si nécessaire
+    # Enregistrement en base de données
+    feedback = save_feedback_in_db(
+        prediction_id=feedback_data.prediction_id,
+        feedback=feedback_data.feedback
+    )
+
     return {"status": "success", "message": f"Feedback enregistré avec succès."}
 
 
