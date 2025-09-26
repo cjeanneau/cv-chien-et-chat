@@ -48,12 +48,11 @@ jobs:
       run: |
         # Lance ton API en arrière-plan
         python scripts/run_api.py &
-        API_PID=$!
         # Attends que l'API soit prête
         sleep 10
         # Exécute tes tests (y compris ceux qui utilisent la base de données)
         #python tests/test_api_simple.py
         #python tests/test_api.py
-        python tests/mytest.py
-        # Arrête l'API après les tests
-        kill $API_PID
+        #python tests/test_mytest.py
+        pytest
+       
