@@ -3,7 +3,7 @@
 import pytest
 import sys
 from pathlib import Path
-
+import os
 ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
@@ -15,6 +15,7 @@ from maconfig import DATABASE_URL
 # URL de la base de données de test
 TEST_DATABASE_URL = DATABASE_URL
 print("TEST_DATABASE_URL:", TEST_DATABASE_URL)
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
 # Définition des fixtures
 
@@ -57,4 +58,3 @@ def test_creation_feedback(session):
     session.commit()
     assert new_feedback.id is not None
 
-    
