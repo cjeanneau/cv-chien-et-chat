@@ -15,7 +15,7 @@ from maconfig import DATABASE_URL
 # URL de la base de données de test
 TEST_DATABASE_URL = DATABASE_URL
 print("TEST_DATABASE_URL:", TEST_DATABASE_URL)
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+#TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 
 # Définition des fixtures
 
